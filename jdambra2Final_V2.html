@@ -25,11 +25,11 @@ var svg = d3.select("#my_dataviz")
           "translate(" + margin.left + "," + margin.top + ")");
 
 //Read the data
-d3.csv('https://johnjdambra.github.io/Education_Data_test.csv', function(data) {
+d3.csv('https://johnjdambra.github.io/Education_Data.csv', function(data) {
 
   // Add X axis
   var x = d3.scaleLinear()
-    .domain([0, 74])
+    .domain([0, 96375])
     .range([ 0, width ]);
   svg.append("g")
     .attr("transform", "translate(0," + height + ")")
@@ -37,7 +37,7 @@ d3.csv('https://johnjdambra.github.io/Education_Data_test.csv', function(data) {
 
   // Add Y axis
   var y = d3.scaleLinear()
-    .domain([0, 74])
+    .domain([0, 250000])
     .range([ height, 0]);
   svg.append("g")
     .call(d3.axisLeft(y));
@@ -48,8 +48,8 @@ d3.csv('https://johnjdambra.github.io/Education_Data_test.csv', function(data) {
     .data(data)
     .enter()
     .append("circle")
-      .attr("cx", function (d) { return x(d.EngineCylinders); } )
-      .attr("cy", function (d) { return y(d.EngineCylinders); } )
+      .attr("cx", function (d) { return x(d.COSTT4_A); } )
+      .attr("cy", function (d) { return y(d.MD_EARN_WNE_P10); } )
       .attr("r", 1.5)
       .style("fill", "#69b3a2")
 
