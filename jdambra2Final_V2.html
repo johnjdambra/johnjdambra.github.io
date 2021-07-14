@@ -7,8 +7,28 @@
 <!-- Create a div where the graph will take place -->
 <div id="my_dataviz"></div>
 
+      <style>
+      body {
+        margin: 0 auto;
+        display: table;
+        
+      }
+      .fitted {
+        stroke-width: 2.5px;
+        stroke: steelblue;
+        stroke-dasharray: 10,10;
+      }
+      .text {
+         font-size: 13px;
+         margin-top: 10px;
+         text-align: center;
+      }
+      </style>
+
 
 <script>
+
+color = ['orange','red','blue'];
 
 // set the dimensions and margins of the graph
 var margin = {top: 10, right: 30, bottom: 30, left: 60},
@@ -25,10 +45,27 @@ var svg = d3.select("#my_dataviz")
           "translate(" + margin.left + "," + margin.top + ")");
 
 //Read the data
-d3.csv('https://johnjdambra.github.io/Education_Data.csv', function(data) {
+d3.csv('https://johnjdambra.github.io/Education_Data_Clean.csv', function(data) {
+
+   //Calculate line of best fit
+   var x_mean=0;
+   var y_mean=0;
+   x_mean=d3.mean(data,function(d){return +d.COSTT4_A;})
+   y_mean=d3.mean(data,function(d){return +d.MD_EARN_WNE_P10;})
+   //for (i in data){
+ // console.log(data.forEach(function(d){return d.COSTT4_A;}));
+//}
+console.log(y_mean);
+var xy_diff=d3.sum(data,function(d){return (+d.COSTT4_A-x_mean)*(+d.MD_EARN_WNE_P10-y_mean);});
+var xx_diff=d3.sum(data,function(d){return (+d.COSTT4_A-x_mean)* (+d.COSTT4_A-x_mean);});
+var fit_slope=xy_diff/xx_diff
+var b_intercept=y_mean-fit_slope*x_mean;
+console.log(fit_slope)
+console.log(b_intercept)
+
 
   // Add X axis
-  var x = d3.scaleLinear()
+  var x = d3.scaleLinear(y_mean)
     .domain([0, 96375])
     .range([ 0, width ]);
   svg.append("g")
@@ -51,7 +88,17 @@ d3.csv('https://johnjdambra.github.io/Education_Data.csv', function(data) {
       .attr("cx", function (d) { return x(d.COSTT4_A); } )
       .attr("cy", function (d) { return y(d.MD_EARN_WNE_P10); } )
       .attr("r", 1.5)
-      .style("fill", "#69b3a2")
+      .attr("fill",  function (d) { return color[+d.SCHTYPE-1]; })
+
+
+var x1_pt=0
+var x2_pt=900000
+ svg.append('line')
+    .attr("class", "fitted")
+    .attr('x1',x(x1_pt))
+    .attr('x2',x(x2_pt))
+    .attr('y1',y(fit_slope*x1_pt+b_intercept))
+    .attr('y2',y(fit_slope*x2_pt+b_intercept))     
 
 })
 
