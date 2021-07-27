@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- Load the d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+
+
+
+
+    <center><h1 style="color:blue;"><img src="grad_cap.svg" alt="Grad Cap" style="vertical-align:middle;margin:0px 5px;width:100px;height:100px;"> Does Paying More for College Result in More Earnings? <img src="grad_cap.svg" alt="Grad Cap" style="vertical-align:middle;margin:0px 5px;width:100px;height:100px;"></h1>
+    <h2>by John Dambra</h2>
+    <h3>This narrative visualization explores the relationship between the cost of various colleges to the future earnings of graduates from the colleges.  The visuals show the relationship between tuition cost and future earnings by plotting the values of various colleges and fitting a linear line of best fit.  The slope of this line can help us determine the value of an extra $1 spent in terms of generating additional future earnings. Specifically, this visualization will explore differences in Public, Private, and Proprietary College types to determine if one type of school has more value as measured by generating more future income from any additional tuition cost spent.  The below graph shows all the colleges in the data set.  As mentioned, a linear line of best fit is included to show approximately how much more money a graduate can hope to earn for each additional dollar spent.  In this case, the slope of the line is $.44.  This means that for each additional dollar spent on tuition, a graduate can expect to earn approximately $.44 a year in future earnings.  </h3>
+<h4 style="color:blue;"></h4>
+<div id="continue_button">
+    <input name="updateButton" 
+           type="button" 
+           value="Click Here To Continue" 
+           onclick="changeFilter()" 
+           class="continue"
+           />
+</div>
+  </center>
+
+
+<!-- Initialize a Filter -->
+<center><select id="filterButton"></select></center>
+<center><h5 style="font-size:18px;">Tuition Cost vs. Future Yearly Earnings</h5></center>
+<!-- Create a div where the graph will take place -->
+<center><div id="my_narrative_viz"></div></center>
+
+<center><h6 style="font-size:12px;">Datasource: https://data.ed.gov/dataset/college-scorecard-all-data-files-through-6-2020/resources?resource=823ac095-bdfc-41b0-b508-4e8fc3110082  <br> Note: Data points without necessary elements were filtered from final results.</h6></center>
+
+
+<!--Create various styles-->
+      <style>
+      body {
+        margin: 0 auto;
+        display: table;
+        
+      }
+      img {
+  display: inline-block;
+}
+      .header {
+  padding: 0px;
+  text-align: center;
+  position: top;
+  background: silver;
+  color: white;
+  font-size: 30px;
+  width: 800px;
+}
+      .fitted {
+        stroke-width: 2.5px;
+        stroke: steelblue;
+        stroke-dasharray: 10,10;
+      }
+
+      .annote_line{
+        stroke-width: 1.5px;
+        stroke: grey;
+        
+      }
+
+
+      .text {
+         font-size: 13px;
+         margin-top: 10px;
+         text-align: center;
+         text-anchor: middle;
+      }
+
+      div.tooltip { 
+    position: absolute;     
+    text-align: center;     
+    width: 200px;          
+    height: 70px;         
+    padding: 2px;       
+    font: 12px sans-serif;    
+    background: lightgray; 
+    border: 0px;    
+    border-radius: 9px;     
+    pointer-events: none;     
+}
+
+
+input.continue {
+    width: 15em;  height: 2em;
+    
+    color: black;
+    border-radius: 4px;
+    cursor: pointer;
+    transition-duration: 0.4s;
+}
+input.continue:hover {
+ background-color: blue; 
+  color: white;
+}
+#filterButton{
+ width:150px;   
+}
+
+      </style>
+
+
+
+<script>
+var h3 = d3.select('h3');
+var h4 = d3.select('h4');
+var click_num=0;
+var click_var=0;
+var opacity_val=0;
+//control glass part of martini glass narrative
+var glass=0;
+
+//Set data point style colors
+color = ['orange','red','blue'];
+
+
+// Define  the tooltip
+var div = d3.select("body").append("div") 
+    .attr("class", "tooltip")       
+    .style("opacity", 0)
+
+    ;
+
+
+
+
+renderGraph(click_num,0)
+
+
+
+
+//function to update the click_num variable when continue button is clicked and re render the chart and narration with new state variables.
+function changeFilter() {
+   var svg = d3.select("#my_narrative_viz")
+   //.append("svg")
+   svg.selectAll('*').remove();
+    // Get the data again
+
+
+   
+    click_num=click_num+1;
+    renderGraph(click_num,0)
+
+
+
+}
+
+//render the visualization
+function renderGraph(_clicknum,_filter) {
+
+var schools=['all','Public','Private, Nonprofit','Proprietary']
+
+// Dimension variables and the margins on the graph
+var margin = {top: 10, right: 30, bottom: 30, left: 60},
+    width = 460 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+// append the svg object to the body of the necessary page
+var svg = d3.select("#my_narrative_viz")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+//Read the data
+console.log(click_num^2)
+click_var=0
+d3.csv('https://johnjdambra.github.io/Education_Data_Clean.csv', function(data) {
+  //determine what sub set to show
+  if (_clicknum!=0 & _clicknum<=3) {
+  data=data.filter(function(d) { return d.SCHTYPE == _clicknum })
+  click_var=click_num
+}
+  if (click_num>3 & _filter!=0 )
+  {
+  data=data.filter(function(d) { return d.SCHTYPE == _filter })
+
+
+  }
+
+  if (click_num>3 )
+  {
+    opacity_val=.9
+  }
+
+  //Control Text Shown - Public
+  if (_clicknum==1){
+  h3.text("The below graph now shows only the public schools in the college data set.  The linear line of best fit is again included to show approximately how much more money a graduate can hope to earn for each additional dollar spent on tuition.  In this case, the slope of the line is $1.09.  The slope shows that for each additional dollar spent on tuition a graduate can expect to earn approximately $1.09 a year in future earnings.  This is a drastic improvement from the previous chart which included all schools.");
+}
+
+  if (_clicknum==2){
+  h3.text("The below graph now shows only the private schools in the college data set.  The linear line of best fit is has a slope of $.58.  The slope shows that for each additional dollar spent on tuition a graduate can expect to earn approximately $.58 a year in future earnings.  This is a a much lower value than the slope of the line for the public schools.");
+}
+
+
+  if (_clicknum==3){
+  h3.text("The linear line of best fit for proprietary schools is has a slope of $.70.  The slope shows that for each additional dollar spent on tuition a graduate can expect to earn approximately $.70 a year in future earnings.  Again, this is a a much lower value than the slope of the line for the public schools.");
+}
+  if (_clicknum>3){
+    
+  h3.text("We have now stepped through the college data set and analyzed approximately how much additional future earnings a graduate can hope to earn for paying more tuition by looking at all schools, public schools, private schools, and proprietary schools.  We can conclude that although private schools have some of the highest earning schools included in the date set, public schools seem to drive the most value for extra tuition costs by providing $1.09 of extra earnings for each extra $1 of tuition spend.  This is compared to the values of $.58 and $.70 seen for private and proprietary schools respectively.  To further explore the data set, hover over data points in the scatterplot to see specific colleges and their tuition/earnings values.  To revist any of the previous breakouts for public, private, or proprietary schools, use the below filter.");
+h4.text("Select an option from the below menu to filter by school type.  Hover over the below data points to reveal the tooltip.");
+ 
+   
+}
+
+
+
+   //Calculate line of best fit
+   var x_mean=0;
+   var y_mean=0;
+   x_mean=d3.mean(data,function(d){return +d.COSTT4_A;})
+   y_mean=d3.mean(data,function(d){return +d.MD_EARN_WNE_P10;})
+   //for (i in data){
+ // console.log(data.forEach(function(d){return d.COSTT4_A;}));
+//}
+//console.log(y_mean);
+var xy_diff=d3.sum(data,function(d){return (+d.COSTT4_A-x_mean)*(+d.MD_EARN_WNE_P10-y_mean);});
+var xx_diff=d3.sum(data,function(d){return (+d.COSTT4_A-x_mean)* (+d.COSTT4_A-x_mean);});
+var fit_slope=xy_diff/xx_diff
+var b_intercept=y_mean-fit_slope*x_mean;
+//console.log(fit_slope)
+//console.log(b_intercept)
+
+
+  // Add X axis
+  var x = d3.scaleLinear(y_mean)
+    .domain([0, 96375])
+    .range([ 0, width ]);
+  svg.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x));
+
+  // Add Y axis
+  var y = d3.scaleLinear()
+    .domain([0, 250000])
+    .range([ height, 0]);
+  svg.append("g")
+    .call(d3.axisLeft(y));
+
+  // Create Scatterplot
+  svg.append('g')
+    .selectAll("dot")
+    .data(data)
+    .enter()
+    .append("circle")
+      //.filter(function(d) { return d.SCHTYPE == 1 })
+
+      .attr("cx", function (d) { return x(d.COSTT4_A); } )
+  //                   .transition()
+      //               .delay(1000)
+    //  .duration(1000)
+      .attr("cy", function (d) { return y(d.MD_EARN_WNE_P10); } )
+      .attr("r", 2)
+      .attr("fill",  function (d) { if(_clicknum==0){return 'Purple'}else{ return color[+d.SCHTYPE-1];} })
+
+
+//if (_clicknum>3){
+//Add Tooltip to Visual
+.on("mouseover", function(d) {    
+  d3.select(this).transition()
+          .duration('100')
+          .attr("r", 4)
+          .attr("fill",'lightgreen');
+            div.transition()    
+                .duration(200)    
+                .style("opacity", opacity_val);    
+            div .html(d.INSTNM + "<br/>"  + schools[d.SCHTYPE] + "<br/> Cost: $" +d3.format(",") (d.COSTT4_A)  + "<br/> Median Earnings: $" +d3.format(",") (d.MD_EARN_WNE_P10)  )  
+                .style("left", (d3.event.pageX) + "px")   
+                .style("top", (d3.event.pageY - 28) + "px")
+                
+                ;  
+            })          
+        .on("mouseout", function(d) {   
+            div.transition()    
+                .duration(500)    
+                .style("opacity", 0); 
+
+        d3.select(this).transition()//
+          .duration('100')
+          .attr("r", 2)
+          .attr("fill",  function (d) { if(_clicknum==0){return 'Purple'}else{ return color[+d.SCHTYPE-1];} });
+        });
+
+//}//end add tooltip
+
+
+//Add line of best fit
+var x1_pt=0
+var x2_pt=100000
+ svg.append('line')
+    .attr("class", "fitted")
+    .attr('x1',x(x1_pt))
+    .attr('x2',x(x2_pt))
+    .attr('y1',y(fit_slope*x1_pt+b_intercept))
+    .attr('y2',y(fit_slope*x2_pt+b_intercept)) 
+
+
+
+
+//x axis text
+svg.append("text")
+    .attr("text-anchor", "end")
+    .attr("x", width/2+55)
+    .attr("y", height +28)
+    .style("font-size", "13px")
+    .text("Annual Cost of Attendance ($)");
+
+  // text label for the y axis
+  svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .style("font-size", "13px")
+      .text("Median Earnings 10 Years After Entry ($)");      
+
+
+ var schools=['All','Public','Private, Nonprofit','Proprietary']
+ //var y_placements=[-70,-10,-50,-70]
+
+
+  //on 3rd click add options to filter
+
+
+//Add annotation line
+ svg.append('line')
+    .attr("class", "annote_line")
+    .attr('x1',x(x2_pt-25000))
+    .attr('x2',x(x2_pt-1000))
+    .attr('y1',y(fit_slope*x2_pt+b_intercept+50000))
+    .attr('y2',y(fit_slope*x2_pt+b_intercept+5000))
+
+//Add annotation text
+svg.append("text")
+    .attr("x",x(x2_pt-45000) )
+    .attr("y", y(fit_slope*x2_pt+b_intercept+55000))
+     
+    .text('Slope of the line is: $'+fit_slope.toFixed(2))
+    //.text(function(d) { return d; });
+
+
+  if(_clicknum==4 & glass==0){
+  // add the options to the button
+    d3.select("#filterButton")
+      .selectAll('Options')
+      .data(schools)
+      .enter()
+      .append('option')
+      .text(function (d) { return d; }) // text showed in the menu
+      .attr("value", function (d) { return d; }) 
+      glass=1;
+    }
+
+// When the button is changed, run the updateChart function
+    d3.select("#filterButton").on("change", function(d) {
+        // recover the option that has been chosen
+        var selectedOption = d3.select(this).property("value")
+          //Re render graph with filter
+           var svg = d3.select("#my_narrative_viz")
+          //.append("svg")
+        svg.selectAll('*').remove();
+        //select necessary school type
+        var selection=schools.findIndex(function checkFilter(_selectedOption){return selectedOption==_selectedOption;});
+        renderGraph(_clicknum,selection) 
+
+    })
+
+
+    //Control visibility of objects for after base of martini glass
+if (_clicknum<=3){
+//hide filterButton
+   document.getElementById("filterButton").style.visibility = "hidden";
+
+   
+ }
+ else//if click_num>=3
+ {
+  //hide continue_button and make filterButton visible now
+document.getElementById("filterButton").style.visibility = "visible";
+document.getElementById("continue_button").style.visibility = "hidden";
+ }
+
+
+})
+
+}
+
+
+
+
+
+
+</script>
